@@ -1,0 +1,49 @@
+!!!
+html
+  head
+    h1= title
+body
+  p Welcome to #{title}
+  p <a href="/">Back to main menu</a>
+  p <div>
+  p <form id="searchForm" name="crewsearch" action="javascript:test()">
+  p    <fieldset>
+  p        Name <input type="text" id="name" name="Name" />
+  p        Age <input type="number" id="age" name="Age" />
+  p        <input type="submit" value="Pray to the spirits of datacoils" />
+  p    </fieldset>
+  p </form>
+  p </div>
+  p <pre><code id="testArea">
+  p </code></pre>
+
+script(type="text/javascript", src="/javascripts/form2js.js")
+
+script
+    function test()
+    {
+      var formData = form2js('searchForm', '.', true,
+          function(node)
+          {
+            if (node.id && node.id.match(/callbackTest/))
+              {
+                return { name: node.id, value: node.innerHTML };
+              }
+          }
+          )
+
+      
+      document.getElementById('testArea').innerHTML = JSON.stringify(formData, null, '\t');
+      $.ajax({
+        url:"/crew_search",
+        type:"POST",
+        data:formData,       //using dataType String
+        success:function (res)
+        {
+             resHandler(res);
+        }
+      });
+      console.log(formData);
+    }
+
+

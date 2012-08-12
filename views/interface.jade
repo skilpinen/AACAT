@@ -1,0 +1,31 @@
+head
+  h1 = title
+  p Welcome to #{title}
+  script(type="text/javascript", src="/javascripts/jquery-1.7.min.js")
+body
+  div
+    form(method='post', name='ui')
+      table(border='0')
+        tr
+          td
+            textarea(name='screen', rows=25, cols=75)
+        tr
+          td
+            textarea(name='prompt', rows=1, cols=50)
+        tr
+          td
+            input(type='button', value='Enter', onClick='command();')
+
+script(type="text/javascript")
+  function command(){
+    var newText = {'command': document.ui.prompt.value};
+    $.ajax({
+      url:"/ui",
+      type:"POST",
+      data:newText,      
+      success:function (res){
+        document.ui.screen.value += '+++Inquiry+++\n' + document.ui.prompt.value + '\n';
+        document.ui.screen.value += '+++The Sacret Response+++\n' + res['response'] + '\n';
+      }
+      });
+  }
