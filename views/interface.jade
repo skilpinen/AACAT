@@ -19,13 +19,13 @@ body
 script(type="text/javascript")
   function command(){
     var newText = {'command': document.ui.prompt.value};
+    document.ui.screen.value += '+++Inquiry+++\n' + document.ui.prompt.value + '\n';
     $.ajax({
       url:"/ui",
       type:"POST",
       data:newText,      
       success:function (res){
-        document.ui.screen.value += '+++Inquiry+++\n' + document.ui.prompt.value + '\n';
-        document.ui.screen.value += '+++The Sacret Response+++\n' + res['response'] + '\n';
+        document.ui.screen.value += '+++The Sacret Response+++\n' + res['response'] + '\n\n';
       }
       });
   }

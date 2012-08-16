@@ -1,55 +1,52 @@
 /* Samin parseri */
 
-%{
-var Mongo = require('./mongo.js').Mongo;
-var mongo = new Mongo('localhost',27017);
-solveField = function(field){
-	var enumerateKeys = {mapreduce : "crew",map : "function() {for (var key in this) { emit(key, null); }}",reduce : "function(key, stuff){ return null; }",out: "crew" + "_keys"}
-	mongo.db.executeDbCommand(enumerateKeys, function(err, res) {
-		mongo.findKeys(function(err,docs){
-			docs.map(function(key){
-				console.log(JSON.parse('{"'+key+'":"'+field+'"}'))
-				mongo.findByQuery(JSON.parse('{"'+key+'":"'+field+'"}'),function(err,doc){
-					console.log(key)
-					// TODO: algorithm to decide whether field is ambigious
-					console.log(doc.length)
-				})
-				console.log(key)
-			})
-		})
-	})
-	return('rank');
-}
-%}
-
 /* lexical grammar */
 %lex
 
 %%
 \s+                   /* skip whitespace */
-"count"			return 'COUNT';
-"crew"			return 'CREW';
-"officer"		return 'OFFICER';
+[Cc]"ount"		return 'COUNT';
+[Ll]"ist"		return 'LIST';
+"not"			return 'NOT'
+"or"			return 'OR'
+"and"			return 'AND'
+"with"			return 'WITH';
+[0-9a-zA-Z_-]+		return 'WHAT';
 <<EOF>>               return 'EOF';
 /lex
 
-%start expressions
+%start query
 
 %% /* language grammar */
 
-expressions
-	: e EOF
+query
+	: count EOF
+		{return($1);}
+	| list EOF
 		{return($1);}
 	;
 
-WHAT:	/* empty */
-	| CREW
-	| OFFICER
-	;	
+DEF
+	: WITH WHAT -> [$1, $2]
+	;
 
-e
-	: COUNT WHAT
-		%{var query = '{"command":"count","query":{"' + solveField($2) + '":"' + $2 + '"}}';$$ = query;%}
-    	;
+conjunction
+	: AND     -> "and"
+	| OR      -> "or"
+	| AND NOT -> "not"
+	;
 
+count
+	: COUNT DEF WHAT
+		%{var tmp = '{"command":"COUNT","what":"' + $3 + '","withwhat":"'+$2[1]+'"}';$$=tmp;%}
+	| COUNT WHAT
+		%{var tmp = '{"command":"COUNT","what":"' + $2 + '"}';$$=tmp;%}
+	;
+
+list
+	: LIST WHAT
+		%{var tmp = '{"command":"LIST","what":"' + $2 + '"}';$$=tmp;%}
+	| LIST DEF WHAT
+		%{var tmp = '{"command":"LIST","what":"' + $3 + '","withwhat":"'+$2[1]+'"}';$$=tmp;%}
+	;
 
